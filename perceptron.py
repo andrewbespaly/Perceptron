@@ -35,10 +35,10 @@ def weight_update(weight_vect, eta, target, y_vect, input_img_vect):
         weight_vect[p] += finalstep
     return weight_vect
 
-train_file_img = r'C:\Users\Andrew\Desktop\perceptron\train-images.idx3-ubyte'
-train_file_lab = r'C:\Users\Andrew\Desktop\perceptron\train-labels.idx1-ubyte'
-test_file_img = r'C:\Users\Andrew\Desktop\perceptron\t10k-images.idx3-ubyte'
-test_file_lab = r'C:\Users\Andrew\Desktop\perceptron\t10k-labels.idx1-ubyte'
+train_file_img = r'C:\Users\andyg\Desktop\Perceptron\train-images.idx3-ubyte'
+train_file_lab = r'C:\Users\andyg\Desktop\Perceptron\train-labels.idx1-ubyte'
+test_file_img = r'C:\Users\andyg\Desktop\Perceptron\t10k-images.idx3-ubyte'
+test_file_lab = r'C:\Users\andyg\Desktop\Perceptron\t10k-labels.idx1-ubyte'
 
 train_img = idx2numpy.convert_from_file(train_file_img)
 train_lab = idx2numpy.convert_from_file(train_file_lab)
@@ -48,47 +48,78 @@ test_lab = idx2numpy.convert_from_file(test_file_lab)
 
 
 epoch = 0
-correct = 0
-trainingsize = len(train_img)
+maxEpoch = 10
+trainingsize = 10000#len(train_img)
+testsize = 10000#len(test_img)
+train_accuracy_arr = np.zeros(maxEpoch)
+test_accuracy_arr = np.zeros(maxEpoch)
+epochIterArr = np.zeros(maxEpoch)
 
-while(epoch <= 30):
-    for img_num in range(0, 1000): #len(train_img)):
+#weights initialization
+image_size_vect = train_img[0].flatten()
+weights = np.zeros((10, len(image_size_vect)+1), dtype=np.float64)
+for p in range(0, 10):
+    for r in range(0, len(image_size_vect)):
+        weights[p][r] = random.uniform(-0.05, 0.05)
+
+while(epoch < maxEpoch):
+    #training data learning
+    correctAmt = 0
+    for img_num in range(0, trainingsize):
         train_img_vect = train_img[img_num].flatten()
         bias = 1
         train_img_vect = np.insert(train_img_vect, 0, bias)
         train_img_vect = np.true_divide(train_img_vect, 255)
 
-        weights = np.zeros((10, len(train_img_vect)), dtype=np.float64)
-        for p in range(0, 10):
-            for r in range(0, len(train_img_vect)):
-                weights[p][r] = random.uniform(-0.05, 0.05)
-
         neuron_sum_vect = np.dot(weights, train_img_vect)
 
         same_check = target_same_check(neuron_sum_vect, train_lab[img_num])
-        print(img_num, end=' ')
         if not same_check:
-            print('-')
             weights = weight_update(weights, 0.1, train_lab[img_num], neuron_sum_vect, train_img_vect)
         else:
-            print('CORRECT')
-            correct += 1
+            correctAmt += 1
+    train_accuracy_arr[epoch] = (correctAmt / trainingsize) * 100
+
+    #test data learning
+    correctAmt = 0
+    for img_num in range(0, testsize):
+        test_img_vect = test_img[img_num].flatten()
+        bias = 1
+        test_img_vect = np.insert(test_img_vect, 0, bias)
+        test_img_vect = np.true_divide(test_img_vect, 255)
+
+        neuron_sum_vect = np.dot(weights, test_img_vect)
+
+        same_check = target_same_check(neuron_sum_vect, test_lab[img_num])
+        if same_check:
+            correctAmt += 1
+
+    test_accuracy_arr[epoch] = (correctAmt / testsize) * 100
+
+    print('Epoch:', epoch, 'Finished')
+    epochIterArr[epoch] = epoch
     epoch += 1
 
 
 
 
+print(train_accuracy_arr)
+print(epochIterArr)
+print(test_accuracy_arr)
 
-# height, width = train_img[0].shape
-# for i in range (0,height):
-#     for j in range(0,width):
-#         print(train_img[0][i][j], end='\t')
-#     print()
-#
-# print(flat_train_img)
-# cv2.imshow("image", train_img[0])
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+plt.plot(train_accuracy_arr,label='Training Set')
+plt.legend()
+plt.plot(test_accuracy_arr, label='Test Set')
+plt.legend()
+
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy %')
+plt.savefig('graph.png')
+plt.show()
+
+
+
+
 
 
 
