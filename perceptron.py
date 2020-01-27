@@ -34,28 +34,44 @@ def weight_update(weight_vect, eta, target, y_vect, input_img_vect):
         weight_vect[p] += finalstep
     return weight_vect
 
-train_file_img = r'C:\Users\andyg\Desktop\Perceptron\train-images.idx3-ubyte'
-train_file_lab = r'C:\Users\andyg\Desktop\Perceptron\train-labels.idx1-ubyte'
-test_file_img = r'C:\Users\andyg\Desktop\Perceptron\t10k-images.idx3-ubyte'
-test_file_lab = r'C:\Users\andyg\Desktop\Perceptron\t10k-labels.idx1-ubyte'
+def print_matrix(matrix, eta):
+    print('Confusion Matrix for', eta, 'Step Experiment')
+    for x in range(-1, len(matrix[0])):
+        if x == -1:
+            print('-',end='\t\t')
+        elif x == 9:
+            print(x)
+        else:
+            print(x, end='\t\t')
+    for i in range(0, len(matrix[0])):
+        print(i, end='\t\t')
+        for j in range(0, len(matrix[0])):
+            print(matrix[i][j], end='\t\t')
+        print()
+
+
+train_file_img = r'C:\Users\Andrew\Desktop\perceptron\train-images.idx3-ubyte'
+train_file_lab = r'C:\Users\Andrew\Desktop\perceptron\train-labels.idx1-ubyte'
+test_file_img = r'C:\Users\Andrew\Desktop\perceptron\t10k-images.idx3-ubyte'
+test_file_lab = r'C:\Users\Andrew\Desktop\perceptron\t10k-labels.idx1-ubyte'
 
 train_img = idx2numpy.convert_from_file(train_file_img)
 train_lab = idx2numpy.convert_from_file(train_file_lab)
 test_img = idx2numpy.convert_from_file(test_file_img)
 test_lab = idx2numpy.convert_from_file(test_file_lab)
 
-
+etaGlobal = 0.1
 
 epoch = 0
-maxEpoch = 3
-trainingsize = 500#len(train_img)
-testsize = 500#len(test_img)
+maxEpoch = 70
+trainingsize = len(train_img)
+testsize = len(test_img)
 train_accuracy_arr = np.zeros(maxEpoch)
 test_accuracy_arr = np.zeros(maxEpoch)
 epochIterArr = np.zeros(maxEpoch)
+lastRun = False
 
-confusionMatrix = np.zeros((maxEpoch, 10, 10), dtype=np.int)
-print(confusionMatrix)
+confusionMatrix = np.zeros((10, 10), dtype=np.int)
 #weights initialization
 image_size_vect = train_img[0].flatten()
 weights = np.zeros((10, len(image_size_vect)+1), dtype=np.float64)
@@ -64,6 +80,9 @@ for p in range(0, 10):
         weights[p][r] = random.uniform(-0.05, 0.05)
 
 while(epoch < maxEpoch):
+
+    if(maxEpoch-1 == epoch):
+        lastRun = True
     #training data learning
     correctAmt = 0
     for img_num in range(0, trainingsize):
@@ -76,11 +95,11 @@ while(epoch < maxEpoch):
 
         same_check = target_same_check(neuron_sum_vect, train_lab[img_num])
         if not same_check:
-            weights = weight_update(weights, 0.1, train_lab[img_num], neuron_sum_vect, train_img_vect)
+            if epoch != 0:
+                weights = weight_update(weights, etaGlobal, train_lab[img_num], neuron_sum_vect, train_img_vect)
         else:
             correctAmt += 1
         maxInd = np.argmax(neuron_sum_vect)
-        confusionMatrix[epoch][train_lab[img_num]][maxInd] += 1
     train_accuracy_arr[epoch] = (correctAmt / trainingsize) * 100
 
     #test data learning
@@ -97,7 +116,8 @@ while(epoch < maxEpoch):
         if same_check:
             correctAmt += 1
         maxInd = np.argmax(neuron_sum_vect)
-        confusionMatrix[epoch][test_lab[img_num]][maxInd] += 1
+        if lastRun:
+            confusionMatrix[maxInd][test_lab[img_num]] += 1
 
     test_accuracy_arr[epoch] = (correctAmt / testsize) * 100
 
@@ -107,26 +127,19 @@ while(epoch < maxEpoch):
     epoch += 1
 
 
-print(confusionMatrix)
-print()
-print(epochIterArr)
-print(train_accuracy_arr)
-print(test_accuracy_arr)
+print_matrix(confusionMatrix, etaGlobal)
 
-plt.plot(train_accuracy_arr,label='Training Set')
+# print(epochIterArr)
+# print(train_accuracy_arr)
+# print(test_accuracy_arr)
+
+plt.plot(train_accuracy_arr, label='Training Set')
 plt.legend()
 plt.plot(test_accuracy_arr, label='Test Set')
 plt.legend()
 
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy %')
+plt.title('Learning Rate: '+str(etaGlobal))
 plt.savefig('graph.png')
 plt.show()
-
-
-
-
-
-
-
-
