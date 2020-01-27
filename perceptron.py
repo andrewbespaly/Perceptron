@@ -2,7 +2,6 @@ import random
 import numpy as np
 import idx2numpy
 import matplotlib.pyplot as plt
-import cv2
 
 def onezerovect(listinput):
     newList = np.zeros(len(listinput))
@@ -48,13 +47,15 @@ test_lab = idx2numpy.convert_from_file(test_file_lab)
 
 
 epoch = 0
-maxEpoch = 10
-trainingsize = 10000#len(train_img)
-testsize = 10000#len(test_img)
+maxEpoch = 3
+trainingsize = 500#len(train_img)
+testsize = 500#len(test_img)
 train_accuracy_arr = np.zeros(maxEpoch)
 test_accuracy_arr = np.zeros(maxEpoch)
 epochIterArr = np.zeros(maxEpoch)
 
+confusionMatrix = np.zeros((maxEpoch, 10, 10), dtype=np.int)
+print(confusionMatrix)
 #weights initialization
 image_size_vect = train_img[0].flatten()
 weights = np.zeros((10, len(image_size_vect)+1), dtype=np.float64)
@@ -78,6 +79,8 @@ while(epoch < maxEpoch):
             weights = weight_update(weights, 0.1, train_lab[img_num], neuron_sum_vect, train_img_vect)
         else:
             correctAmt += 1
+        maxInd = np.argmax(neuron_sum_vect)
+        confusionMatrix[epoch][train_lab[img_num]][maxInd] += 1
     train_accuracy_arr[epoch] = (correctAmt / trainingsize) * 100
 
     #test data learning
@@ -93,18 +96,21 @@ while(epoch < maxEpoch):
         same_check = target_same_check(neuron_sum_vect, test_lab[img_num])
         if same_check:
             correctAmt += 1
+        maxInd = np.argmax(neuron_sum_vect)
+        confusionMatrix[epoch][test_lab[img_num]][maxInd] += 1
 
     test_accuracy_arr[epoch] = (correctAmt / testsize) * 100
 
     print('Epoch:', epoch, 'Finished')
     epochIterArr[epoch] = epoch
+
     epoch += 1
 
 
-
-
-print(train_accuracy_arr)
+print(confusionMatrix)
+print()
 print(epochIterArr)
+print(train_accuracy_arr)
 print(test_accuracy_arr)
 
 plt.plot(train_accuracy_arr,label='Training Set')
