@@ -63,9 +63,9 @@ test_lab = idx2numpy.convert_from_file(test_file_lab)
 etaGlobal = 0.1
 
 epoch = 0
-maxEpoch = 20
-trainingsize = 5000#len(train_img)
-testsize = 5000#len(test_img)
+maxEpoch = 70
+trainingsize = len(train_img)
+testsize = len(test_img)
 train_accuracy_arr = np.zeros(maxEpoch)
 test_accuracy_arr = np.zeros(maxEpoch)
 epochIterArr = np.zeros(maxEpoch)
@@ -83,7 +83,7 @@ for p in range(0, 10):
 while(epoch < maxEpoch and lastRun == False):
     if(epoch > 1):
         difference = (train_accuracy_arr[epoch-1] - train_accuracy_arr[epoch-2])
-        if(maxEpoch-1 == epoch or difference <= 0.01):
+        if(maxEpoch-1 == epoch or difference <= 0.001):
             lastRun = True
     #training data learning
     correctAmt = 0
@@ -125,8 +125,6 @@ while(epoch < maxEpoch and lastRun == False):
 
     print('Epoch:', epoch, 'Finished')
     epochIterArr[epoch] = epoch
-    print(train_accuracy_arr[epoch-1], train_accuracy_arr[epoch-2])
-    print(difference)
 
     if lastRun:
         train_accuracy_arr = np.delete(train_accuracy_arr, slice(epoch, maxEpoch))
@@ -134,12 +132,7 @@ while(epoch < maxEpoch and lastRun == False):
 
     epoch += 1
 
-print(train_accuracy_arr)
 print_matrix(confusionMatrix, etaGlobal)
-
-# print(epochIterArr)
-# print(train_accuracy_arr)
-# print(test_accuracy_arr)
 
 plt.plot(train_accuracy_arr, label='Training Set')
 plt.legend()
